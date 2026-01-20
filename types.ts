@@ -25,9 +25,16 @@ export interface Level {
   completed: boolean;
 }
 
+export interface NotebookEntry {
+  cues: string;
+  notes: string;
+  summary: string;
+}
+
 export interface UserStats {
   xp: number;
   level: number;
   badges: string[];
   completedLevels: number[];
+  notebook: Record<number, NotebookEntry>;
 }
