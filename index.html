@@ -10,6 +10,8 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .game-font { font-family: 'Bangers', cursive; }
+        /* Smooth transitions for a better feel */
+        .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
     </style>
 <script type="importmap">
 {
@@ -26,7 +28,7 @@
 </head>
 <body class="bg-slate-50 text-slate-900">
     <div id="root"></div>
-    <!-- Entry point for the build tool -->
+    <!-- Vite will handle the transformation of this TSX file -->
     <script type="module" src="/index.tsx"></script>
 </body>
 </html>
