@@ -1,43 +1,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Trophy, BookOpen, Target, ChevronRight, ChevronLeft, Star, Lock, CheckCircle2, Award, Zap, Home, ShieldCheck, RefreshCcw, Save, Notebook as NotebookIcon, PenTool, X, ChevronDown, GripVertical, FileText, LayoutList, Flag, Volume2, Square, Loader2 } from 'lucide-react';
-import { GoogleGenAI, Modality } from "@google/genai";
+import { Trophy, BookOpen, Target, ChevronRight, ChevronLeft, Star, Lock, CheckCircle2, Award, Zap, Home, ShieldCheck, RefreshCcw, Save, Notebook as NotebookIcon, PenTool, X, ChevronDown, GripVertical, FileText, LayoutList, Flag } from 'lucide-react';
 import { LEVELS } from './constants';
 import { UserStats, Level, NotebookEntry } from './types';
 
 // Constants for storage keys
 const USER_STORAGE_KEY = 'geoquest_user_v2';
 const LEVELS_STORAGE_KEY = 'geoquest_levels_v2';
-
-// Audio decoding helpers
-function decodeBase64(base64: string) {
-  const binaryString = atob(base64);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
-}
-
-async function decodeAudioData(
-  data: Uint8Array,
-  ctx: AudioContext,
-  sampleRate: number,
-  numChannels: number,
-): Promise<AudioBuffer> {
-  const dataInt16 = new Int16Array(data.buffer);
-  const frameCount = dataInt16.length / numChannels;
-  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
-
-  for (let channel = 0; channel < numChannels; channel++) {
-    const channelData = buffer.getChannelData(channel);
-    for (let i = 0; i < frameCount; i++) {
-      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
-    }
-  }
-  return buffer;
-}
 
 // Geometry Diagram Component
 const GeometryDiagram = ({ type }: { type?: string }) => {
@@ -55,11 +24,8 @@ const GeometryDiagram = ({ type }: { type?: string }) => {
     case 'point-line-plane':
       return (
         <svg viewBox="0 0 200 120" className="w-full h-full max-h-48 drop-shadow-sm">
-          {/* Plane */}
           <path d="M40 80 L140 80 L170 30 L70 30 Z" fill="rgba(79, 70, 229, 0.05)" stroke={colors.primary} strokeWidth="1.5" />
           <text x="50" y="45" fontSize="8" fontWeight="bold" fill={colors.primary}>PLANE P</text>
-          
-          {/* Line */}
           <line x1="20" y1="60" x2="180" y2="60" stroke={colors.text} strokeWidth="2" strokeDasharray="0" markerEnd="url(#arrow)" markerStart="url(#arrow)" />
           <defs>
             <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
@@ -67,8 +33,6 @@ const GeometryDiagram = ({ type }: { type?: string }) => {
             </marker>
           </defs>
           <text x="185" y="63" fontSize="8" fontWeight="bold" fill={colors.text}>m</text>
-          
-          {/* Point */}
           <circle cx="100" cy="60" r="3" fill={colors.accent} />
           <text x="96" y="52" fontSize="10" fontWeight="black" fill={colors.text}>P</text>
         </svg>
@@ -104,11 +68,8 @@ const GeometryDiagram = ({ type }: { type?: string }) => {
           <circle cx="20" cy="40" r="3" fill={colors.text} />
           <circle cx="180" cy="40" r="3" fill={colors.text} />
           <circle cx="100" cy="40" r="4" fill={colors.secondary} />
-          
-          {/* Congruent Marks */}
           <line x1="60" y1="32" x2="60" y2="48" stroke={colors.secondary} strokeWidth="2" />
           <line x1="140" y1="32" x2="140" y2="48" stroke={colors.secondary} strokeWidth="2" />
-          
           <text x="15" y="30" fontSize="10" fontWeight="bold">A</text>
           <text x="175" y="30" fontSize="10" fontWeight="bold">B</text>
           <text x="95" y="30" fontSize="10" fontWeight="black" fill={colors.secondary}>M</text>
@@ -118,14 +79,11 @@ const GeometryDiagram = ({ type }: { type?: string }) => {
     case 'parallel-perpendicular':
       return (
         <svg viewBox="0 0 200 120" className="w-full h-full max-h-48">
-          {/* Parallel */}
           <line x1="20" y1="30" x2="100" y2="30" stroke={colors.text} strokeWidth="1.5" markerEnd="url(#arrow)" />
           <line x1="20" y1="50" x2="100" y2="50" stroke={colors.text} strokeWidth="1.5" markerEnd="url(#arrow)" />
           <path d="M55 25 L60 30 L55 35" fill="none" stroke={colors.primary} strokeWidth="1" />
           <path d="M55 45 L60 50 L55 55" fill="none" stroke={colors.primary} strokeWidth="1" />
           <text x="20" y="20" fontSize="8" fill={colors.primary} fontWeight="bold">PARALLEL (||)</text>
-
-          {/* Perpendicular */}
           <line x1="150" y1="20" x2="150" y2="100" stroke={colors.text} strokeWidth="1.5" />
           <line x1="110" y1="60" x2="190" y2="60" stroke={colors.text} strokeWidth="1.5" />
           <rect x="150" y="50" width="10" height="10" fill="none" stroke={colors.accent} strokeWidth="1.5" />
@@ -135,19 +93,14 @@ const GeometryDiagram = ({ type }: { type?: string }) => {
     case 'coordinate-midpoint':
       return (
         <svg viewBox="0 0 200 150" className="w-full h-full max-h-60">
-          {/* Grid */}
           <path d="M20 0 V150 M40 0 V150 M60 0 V150 M80 0 V150 M100 0 V150 M120 0 V150 M140 0 V150 M160 0 V150 M180 0 V150" stroke={colors.grid} strokeWidth="0.5" />
           <path d="M0 20 H200 M0 40 H200 M0 60 H200 M0 80 H200 M0 100 H200 M0 120 H200 M0 140 H200" stroke={colors.grid} strokeWidth="0.5" />
-          
-          {/* Axis */}
           <line x1="100" y1="0" x2="100" y2="150" stroke={colors.text} strokeWidth="1" />
           <line x1="0" y1="75" x2="200" y2="75" stroke={colors.text} strokeWidth="1" />
-          
           <line x1="60" y1="115" x2="140" y2="35" stroke={colors.primary} strokeWidth="2" strokeDasharray="4" />
           <circle cx="60" cy="115" r="3" fill={colors.text} />
           <circle cx="140" cy="35" r="3" fill={colors.text} />
           <circle cx="100" cy="75" r="4" fill={colors.accent} />
-          
           <text x="40" y="130" fontSize="8" fontWeight="bold">(x₁, y₁)</text>
           <text x="145" y="30" fontSize="8" fontWeight="bold">(x₂, y₂)</text>
           <text x="105" y="70" fontSize="8" fontWeight="black" fill={colors.accent}>M</text>
@@ -183,11 +136,6 @@ export default function App() {
   const [isConsolidatedView, setIsConsolidatedView] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
-  const [isAudioLoading, setIsAudioLoading] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-
   const [fabPosition, setFabPosition] = useState({ x: window.innerWidth - 80, y: 100 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStartPos = useRef({ x: 0, y: 0 });
@@ -288,16 +236,7 @@ export default function App() {
     setView('lesson');
   };
 
-  const stopAudio = () => {
-    if (audioSourceRef.current) {
-      try { audioSourceRef.current.stop(); } catch(e) {}
-      audioSourceRef.current = null;
-    }
-    setIsPlaying(false);
-  };
-
   const nextSlide = () => {
-    stopAudio();
     if (activeLevel && currentSlideIndex < activeLevel.slides.length - 1) {
       setCurrentSlideIndex(prev => prev + 1);
     } else {
@@ -308,44 +247,7 @@ export default function App() {
   };
 
   const prevSlide = () => {
-    stopAudio();
     if (currentSlideIndex > 0) setCurrentSlideIndex(p => p - 1);
-  };
-
-  const playLessonAudio = async () => {
-    if (isPlaying) { stopAudio(); return; }
-    if (!activeLevel) return;
-    const slide = activeLevel.slides[currentSlideIndex];
-    const textToSpeak = `${slide.title}. ${slide.content} ${slide.bullets?.join('. ') || ''}`;
-    setIsAudioLoading(true);
-    try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-preview-tts",
-        contents: [{ parts: [{ text: textToSpeak }] }],
-        config: {
-          responseModalities: [Modality.AUDIO],
-          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } },
-        },
-      });
-      const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-      if (!base64Audio) throw new Error("No audio data");
-      if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-      }
-      const ctx = audioContextRef.current;
-      const audioBuffer = await decodeAudioData(decodeBase64(base64Audio), ctx, 24000, 1);
-      const source = ctx.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(ctx.destination);
-      source.onended = () => setIsPlaying(false);
-      audioSourceRef.current = source;
-      source.start();
-      setIsPlaying(true);
-    } catch (error) {
-      console.error(error);
-      alert("Audio failed.");
-    } finally { setIsAudioLoading(false); }
   };
 
   const handleAnswer = (optionIndex: number) => {
@@ -396,7 +298,7 @@ export default function App() {
     if (confirm("Reset everything?")) { localStorage.clear(); window.location.reload(); }
   };
 
-  const returnToMap = () => { stopAudio(); setView('map'); setActiveLevelId(null); setShowFeedback(null); };
+  const returnToMap = () => { setView('map'); setActiveLevelId(null); setShowFeedback(null); };
 
   const handleNotebookTabClick = (lvlId: number) => { setNotebookTopicId(lvlId); setIsConsolidatedView(false); };
 
@@ -474,13 +376,7 @@ export default function App() {
                 <div className="bg-white rounded-[32px] border border-slate-200 shadow-2xl overflow-hidden min-h-[500px] flex flex-col">
                   <div className="bg-indigo-600 px-8 py-4 flex items-center justify-between text-white">
                     <h2 className="font-bold">Mission {activeLevel.id}: {activeLevel.title}</h2>
-                    <div className="flex items-center gap-4">
-                      <button onClick={playLessonAudio} disabled={isAudioLoading} className={`flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${isPlaying ? 'bg-rose-500 text-white' : 'bg-indigo-500 text-white hover:bg-indigo-400'} disabled:opacity-50`}>
-                        {isAudioLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : isPlaying ? <Square className="w-3 h-3 fill-current" /> : <Volume2 className="w-3 h-3" />}
-                        {isAudioLoading ? 'Loading...' : isPlaying ? 'Stop' : 'Listen'}
-                      </button>
-                      <span className="text-xs font-bold text-indigo-200">Slide {currentSlideIndex + 1}/{activeLevel.slides.length}</span>
-                    </div>
+                    <span className="text-xs font-bold text-indigo-200">Slide {currentSlideIndex + 1}/{activeLevel.slides.length}</span>
                   </div>
                   <div className="p-8 sm:p-12 flex-1 flex flex-col md:flex-row gap-10 items-center justify-center">
                     <div className="flex-1 space-y-6">
