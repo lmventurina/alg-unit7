@@ -1,8 +1,12 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Trophy, BookOpen, Target, ChevronRight, ChevronLeft, Star, Lock, CheckCircle2, Award, Zap, Home, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Trophy, BookOpen, Target, ChevronRight, ChevronLeft, Star, Lock, CheckCircle2, Award, Zap, Home, ShieldCheck, RefreshCcw, Save } from 'lucide-react';
 import { LEVELS } from './constants';
 import { UserStats, Level, Slide, Question } from './types';
+
+// Constants for storage keys
+const USER_STORAGE_KEY = 'geoquest_user_v1';
+const LEVELS_STORAGE_KEY = 'geoquest_levels_v1';
 
 // Helper Components
 const ProgressBar = ({ current, total }: { current: number; total: number }) => (
@@ -25,18 +29,58 @@ const BadgeIcon = ({ name, earned }: { name: string, earned: boolean }) => (
 
 export default function App() {
   const [view, setView] = useState<'map' | 'lesson' | 'quiz' | 'victory'>('map');
-  const [user, setUser] = useState<UserStats>({
-    xp: 0,
-    level: 1,
-    badges: [],
-    completedLevels: []
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Initialize state from LocalStorage
+  const [user, setUser] = useState<UserStats>(() => {
+    const saved = localStorage.getItem(USER_STORAGE_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse user data", e);
+      }
+    }
+    return {
+      xp: 0,
+      level: 1,
+      badges: [],
+      completedLevels: []
+    };
   });
-  const [levels, setLevels] = useState<Level[]>(LEVELS);
+
+  const [levels, setLevels] = useState<Level[]>(() => {
+    const saved = localStorage.getItem(LEVELS_STORAGE_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse levels data", e);
+      }
+    }
+    return LEVELS;
+  });
+
   const [activeLevelId, setActiveLevelId] = useState<number | null>(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [quizScore, setQuizScore] = useState(0);
   const [showFeedback, setShowFeedback] = useState<{ correct: boolean; message: string } | null>(null);
+
+  // Sync to LocalStorage whenever user or levels change
+  useEffect(() => {
+    setIsSaving(true);
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+    const timer = setTimeout(() => setIsSaving(false), 800);
+    return () => clearTimeout(timer);
+  }, [user]);
+
+  useEffect(() => {
+    setIsSaving(true);
+    localStorage.setItem(LEVELS_STORAGE_KEY, JSON.stringify(levels));
+    const timer = setTimeout(() => setIsSaving(false), 800);
+    return () => clearTimeout(timer);
+  }, [levels]);
 
   const activeLevel = levels.find(l => l.id === activeLevelId);
 
@@ -107,7 +151,6 @@ export default function App() {
 
       setLevels(prev => prev.map(l => {
         if (l.id === activeLevel.id) return { ...l, completed: true };
-        // Check if all levels before 6 are done to unlock 6
         if (l.id === 6 && activeLevel.id === 5) return { ...l, unlocked: true };
         if (l.id === activeLevel.id + 1 && l.id < 6) return { ...l, unlocked: true };
         return l;
@@ -115,6 +158,14 @@ export default function App() {
     }
 
     setView('victory');
+  };
+
+  const resetProgress = () => {
+    if (confirm("Are you sure you want to reset your progress? This will clear all XP, levels, and badges.")) {
+      localStorage.removeItem(USER_STORAGE_KEY);
+      localStorage.removeItem(LEVELS_STORAGE_KEY);
+      window.location.reload();
+    }
   };
 
   const returnToMap = () => {
@@ -132,7 +183,13 @@ export default function App() {
             <div className="bg-indigo-600 p-2 rounded-lg shadow-lg">
               <Zap className="text-white w-6 h-6 fill-current" />
             </div>
-            <h1 className="game-font text-2xl tracking-tighter text-indigo-900">GeoQuest</h1>
+            <div className="flex flex-col">
+              <h1 className="game-font text-2xl tracking-tighter text-indigo-900 leading-none">GeoQuest</h1>
+              <div className={`flex items-center gap-1.5 transition-opacity duration-300 ${isSaving ? 'opacity-100' : 'opacity-0'}`}>
+                <Save className="w-2.5 h-2.5 text-emerald-500 animate-pulse" />
+                <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-tighter">Syncing...</span>
+              </div>
+            </div>
           </div>
           
           <div className="flex items-center gap-6">
@@ -162,11 +219,10 @@ export default function App() {
               <div className="flex-1">
                 <div className="mb-8">
                   <h2 className="text-3xl font-bold text-slate-800 mb-2">Unit 7: Building Blocks</h2>
-                  <p className="text-slate-500 italic">"Master the geometry concepts required for standard assessments."</p>
+                  <p className="text-slate-500 italic">"Your progress is automatically saved to this browser."</p>
                 </div>
 
                 <div className="relative space-y-6 pl-4">
-                  {/* Vertical line connector */}
                   <div className="absolute left-[34px] top-6 bottom-6 w-1 bg-slate-200 rounded-full" />
                   
                   {levels.map((lvl) => {
@@ -387,7 +443,7 @@ export default function App() {
                   {showFeedback && (
                     <button 
                       onClick={nextQuestion}
-                      className={`bg-slate-800 text-white px-10 py-4 rounded-2xl shadow-xl shadow-slate-200 hover:bg-slate-900 font-bold transition-all ${activeLevel.id === 6 ? 'animate-pulse' : ''}`}
+                      className={`bg-slate-800 text-white px-10 py-4 rounded-2xl shadow-xl shadow-slate-200 hover:bg-slate-900 font-bold transition-all ${activeLevelId === 6 ? 'animate-pulse' : ''}`}
                     >
                       {currentQuizIndex === activeLevel.quiz.length - 1 ? 'Finish Assessment' : 'Continue'}
                     </button>
@@ -447,10 +503,16 @@ export default function App() {
         )}
       </main>
 
-      <footer className="py-8 px-4 text-center">
+      <footer className="py-8 px-4 text-center space-y-4">
         <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em]">
           Algebra I Unit 7 Mastery LMS • Quarter 3 Certification Path
         </p>
+        <button 
+          onClick={resetProgress}
+          className="inline-flex items-center gap-2 text-slate-300 hover:text-rose-400 transition-colors text-[10px] font-bold uppercase tracking-widest"
+        >
+          <RefreshCcw className="w-3 h-3" /> Reset Mission Progress
+        </button>
       </footer>
     </div>
   );
