@@ -3,6 +3,7 @@ export interface Slide {
   title: string;
   content: string;
   image?: string;
+  diagram?: string; // Key for the GeometryDiagram component
   bullets?: string[];
 }
 

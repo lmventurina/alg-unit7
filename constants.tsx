@@ -13,6 +13,7 @@ export const LEVELS: Level[] = [
       {
         title: "The Undefined Terms",
         content: "In geometry, some terms are so basic that we don't define them with other words. They are the 'atoms' of math.",
+        diagram: "point-line-plane",
         bullets: [
           "Point: A location with no size.",
           "Line: A straight path that extends forever in two directions.",
@@ -22,6 +23,7 @@ export const LEVELS: Level[] = [
       {
         title: "Why 'Undefined'?",
         content: "We use these to define everything else. For example, a segment is part of a line. Without 'Line', we can't have 'Segment'!",
+        diagram: "segment-derivation"
       }
     ],
     quiz: [
@@ -45,6 +47,7 @@ export const LEVELS: Level[] = [
       {
         title: "What is an Angle?",
         content: "An angle is formed by two rays that share a common endpoint called the vertex.",
+        diagram: "angle-definition",
         bullets: [
           "Rays: The sides of the angle.",
           "Vertex: The common endpoint.",
@@ -73,6 +76,7 @@ export const LEVELS: Level[] = [
       {
         title: "Midpoints & Bisectors",
         content: "A midpoint divides a segment into two congruent (equal) parts.",
+        diagram: "midpoint-visualization",
         bullets: [
           "If M is the midpoint of AB, then AM = MB.",
           "Segment Addition: If B is between A and C, then AB + BC = AC."
@@ -100,6 +104,7 @@ export const LEVELS: Level[] = [
       {
         title: "Parallel vs. Perpendicular",
         content: "The behavior of lines determines their classification.",
+        diagram: "parallel-perpendicular",
         bullets: [
           "Parallel: Lines in the same plane that never intersect.",
           "Perpendicular: Lines that intersect to form 90° angles.",
@@ -128,6 +133,7 @@ export const LEVELS: Level[] = [
       {
         title: "Midpoint Formula",
         content: "To find the middle of two points (x₁, y₁) and (x₂, y₂):",
+        diagram: "coordinate-midpoint",
         bullets: [
           "x-coordinate: (x₁ + x₂) / 2",
           "y-coordinate: (y₁ + y₂) / 2",
@@ -156,6 +162,7 @@ export const LEVELS: Level[] = [
       {
         title: "The Ultimate Test",
         content: "This assessment covers everything from undefined terms to coordinate geometry. Read each question carefully as it may combine multiple concepts.",
+        diagram: "geometry-mashup",
         bullets: [
           "Review your definitions of points, lines, and planes.",
           "Remember the midpoint formula for coordinates.",
@@ -167,7 +174,6 @@ export const LEVELS: Level[] = [
       {
         id: 61,
         text: "Point B is between A and C on a line. If AB = x + 3, BC = 2x - 1, and AC = 11, find the value of x.",
-        // Fixed: removed nested array from options
         options: ["x = 3", "x = 4", "x = 5", "x = 9"],
         correctAnswer: 0,
         explanation: "AB + BC = AC. (x + 3) + (2x - 1) = 11. 3x + 2 = 11. 3x = 9. x = 3."
